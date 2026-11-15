@@ -46,5 +46,17 @@
         "9B:3E:E4:A4:C6:59:73:EE:E5:20:26:62:45:B9:15:46:1C:BE:48:24:86:BA:CD:D9:E6:FC:E3:E4:BE:81:14:F8"
       ]
     }
+  },
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.lumbit_games.mergelings",
+      "sha256_cert_fingerprints": [
+        "9B:3E:E4:A4:C6:59:73:EE:E5:20:26:62:45:B9:15:46:1C:BE:48:24:86:BA:CD:D9:E6:FC:E3:E4:BE:81:14:F8"
+      ]
+    }
   }
 ]
