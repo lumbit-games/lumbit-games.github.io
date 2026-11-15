@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lumbit · Small games for one more try</title>
+<meta name="description" content="Lumbit makes small free games you can play in a minute: Lumina, Comet Hop, Spy Night and Ten Rules.">
+<meta property="og:title" content="Lumbit · Small games for one more try">
+<meta property="og:description" content="Four small free games: a light puzzle, a one-tap arcade, a party word game and a reaction game.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://lumbit-games.github.io/comet-hop/icon-512.png">
+<meta name="theme-color" content="#080b18">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='44' fill='%23ffd27a'/><circle cx='50' cy='50' r='20' fill='%23080b18'/></svg>">
+<style>
+:root{--bg:#080b18;--ink:#eef1ff;--mute:#9aa3c7;--line:#232a4a}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 "Avenir Next",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%;overflow-x:hidden}
+canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:calc(14px + env(safe-area-inset-top)) 18px 40px}
+.top{display:flex;justify-content:flex-end;gap:6px}
+.top button{border:1px solid var(--line);background:#0d1226cc;color:var(--mute);border-radius:999px;padding:7px 11px;font-family:inherit;font-weight:600;font-size:12px;line-height:1;letter-spacing:.05em;cursor:pointer}
+.top button[aria-pressed=true]{background:var(--ink);color:#0a0d1c;border-color:var(--ink)}
+header{text-align:center;padding:34px 0 26px}
+.logo{display:inline-flex;align-items:center;gap:14px;font-weight:800;font-size:clamp(44px,11vw,84px);line-height:1;letter-spacing:-.03em}
+.orb{width:.74em;height:.74em;border-radius:50%;background:radial-gradient(circle at 34% 30%,#fff3c9,#ffd27a 45%,#f39a3c);box-shadow:0 0 34px #ffd27a88;position:relative;animation:bob 4s ease-in-out infinite}
+.orb::after{content:"";position:absolute;inset:-22%;border:2px dashed #ffd27a66;border-radius:50%;animation:spin 14s linear infinite}
+.sub{margin:16px auto 0;max-width:26ch;font-size:clamp(18px,4.6vw,23px);color:var(--mute);text-wrap:balance}
+.dice{margin-top:22px;border:0;border-radius:999px;padding:13px 22px;font-family:inherit;font-weight:700;font-size:16px;line-height:1;color:#1b1300;background:linear-gradient(180deg,#ffe19a,#ffc24d);box-shadow:0 8px 24px #ffc24d44;cursor:pointer;transition:transform .15s}
+.dice:active{transform:scale(.96)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:10px}
+.card{position:relative;display:flex;flex-direction:column;gap:12px;padding:18px;border-radius:24px;color:var(--c-ink);background:var(--c-bg);border:1px solid var(--c-line);text-decoration:none;overflow:hidden;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+.card::before{content:"";position:absolute;width:220px;height:220px;right:-70px;top:-90px;border-radius:50%;background:var(--c-acc);opacity:.16;filter:blur(8px);transition:transform .5s,opacity .3s}
+.card:hover,.card:focus-visible,.card.hit{transform:translateY(-6px) rotate(-.6deg);box-shadow:0 18px 40px #0009}
+.card:hover::before,.card.hit::before{transform:scale(1.5);opacity:.28}
+.card.hit{outline:3px solid var(--c-acc)}
+.row{display:flex;align-items:center;gap:14px;position:relative}
+.card img{width:76px;height:76px;border-radius:19px;box-shadow:0 6px 16px #0006;flex:none;transition:transform .4s cubic-bezier(.3,1.6,.5,1)}
+.card:hover img,.card.hit img{transform:rotate(8deg) scale(1.08)}
+.card h2{margin:0;font-size:26px;line-height:1.1;letter-spacing:-.01em}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.tags span{font-family:inherit;font-weight:600;font-size:11px;line-height:1;letter-spacing:.07em;text-transform:uppercase;padding:5px 8px;border-radius:999px;border:1px solid var(--c-line);color:var(--c-mute)}
+.card p{margin:0;color:var(--c-mute);font-size:16.5px;min-height:3em;position:relative}
+.play{align-self:flex-start;margin-top:auto;padding:11px 18px;border-radius:14px;font-weight:700;background:var(--c-acc);color:var(--c-on);position:relative}
+.pick{align-self:flex-start;position:relative;font-family:inherit;font-weight:700;font-size:10.5px;line-height:1;letter-spacing:.08em;text-transform:uppercase;padding:6px 8px;border-radius:8px;background:var(--c-acc);color:var(--c-on)}
+.note{text-align:center;color:var(--mute);margin:30px 0 0}
+footer{text-align:center;color:var(--mute);font-size:13.5px;margin-top:26px}
+footer a{color:inherit}
+@keyframes bob{50%{transform:translateY(-7px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="wrap">
+  <div class="top" id="langs"></div>
+  <header>
+    <div class="logo"><span class="orb" aria-hidden="true"></span>Lumbit</div>
+    <p class="sub" data-t="sub"></p>
+    <button class="dice" id="dice" data-t="dice"></button>
+  </header>
+  <main class="grid" id="grid"></main>
+  <p class="note" data-t="note"></p>
+  <footer>© 2026 Lumbit. <span data-t="rights"></span> · <a href="/privacy/" data-t="privacy"></a></footer>
+</div>
+<script>
+(() => {
+const GAMES = [
+  {slug: "comet-hop", name: "Comet Hop", bg: "linear-gradient(160deg,#25306a,#0a0f1f)", ink: "#f2f4ff", mute: "#b9c2ea", line: "#343f7d", acc: "#ffd27a", on: "#221600",
+   tag: {en: "One tap. Hop from planet to planet.", az: "Bir toxunuş. Planetdən planetə tullan.", tr: "Tek dokunuş. Gezegenden gezegene zıpla.", ru: "Одно касание. Прыгай с планеты на планету."},
+   tags: {en: ["Arcade", "One tap"], az: ["Arkada", "Bir toxunuş"], tr: ["Arcade", "Tek dokunuş"], ru: ["Аркада", "Одно касание"]}},
+  {slug: "lumina", name: "Lumina", bg: "linear-gradient(160deg,#1f2b50,#0e1424)", ink: "#f2f4ff", mute: "#b9c4e6", line: "#33416f", acc: "#ffc65c", on: "#221600",
+   tag: {en: "Turn the tiles. Light every crystal.", az: "Plitələri çevir. Hər kristalı işıqlandır.", tr: "Karoları çevir. Her kristali aydınlat.", ru: "Поворачивай плитки. Зажги каждый кристалл."},
+   tags: {en: ["Puzzle", "Daily"], az: ["Tapmaca", "Gündəlik"], tr: ["Bulmaca", "Günlük"], ru: ["Головоломка", "Каждый день"]}},
+  {slug: "spy-night", name: "Spy Night", bg: "linear-gradient(160deg,#3a1a3c,#0c1020)", ink: "#fbeff5", mute: "#d9c3dd", line: "#5a2f5c", acc: "#ff5d73", on: "#2a0008",
+   tag: {en: "One phone. One secret word. Who is the spy?", az: "Bir telefon. Bir gizli söz. Casus kimdir?", tr: "Bir telefon. Bir gizli kelime. Casus kim?", ru: "Один телефон. Одно секретное слово. Кто шпион?"},
+   tags: {en: ["Party", "3–12 players"], az: ["Məclis", "3–12 oyunçu"], tr: ["Parti", "3–12 oyuncu"], ru: ["Компания", "3–12 игроков"]}},
+  {slug: "ten-rules", name: "Ten Rules", bg: "#FFF6E5", ink: "#1d1b2f", mute: "#4a4763", line: "#e6d9bd", acc: "#f04545", on: "#fff",
+   tag: {en: "A new rule every few taps. One mistake ends it.", az: "Bir neçə toxunuşdan bir yeni qayda. Bir səhv, vəssalam.", tr: "Birkaç dokunuşta yeni bir kural. Tek hata, oyun biter.", ru: "Новое правило каждые несколько касаний. Одна ошибка, и конец."},
+   tags: {en: ["Reaction", "Daily"], az: ["Reaksiya", "Gündəlik"], tr: ["Refleks", "Günlük"], ru: ["Реакция", "Каждый день"]}}
+];
+const UI = {
+  en: {sub: "Small games for one more try.", dice: "🎲 Surprise me", play: "Play", pick: "Today's pick", note: "Free. No sign-up. Plays in your browser.", rights: "All rights reserved.", privacy: "Privacy"},
+  az: {sub: "\"Bir dəfə də\" dedirdən kiçik oyunlar.", dice: "🎲 Təsadüfi oyun", play: "Oyna", pick: "Günün oyunu", note: "Pulsuz. Qeydiyyatsız. Brauzerdə oynanır.", rights: "Bütün hüquqlar qorunur.", privacy: "Məxfilik"},
+  tr: {sub: "\"Bir kez daha\" dedirten küçük oyunlar.", dice: "🎲 Rastgele oyun", play: "Oyna", pick: "Günün oyunu", note: "Ücretsiz. Kayıt yok. Tarayıcıda oynanır.", rights: "Tüm hakları saklıdır.", privacy: "Gizlilik"},
+  ru: {sub: "Маленькие игры, после которых хочется ещё разок.", dice: "🎲 Случайная игра", play: "Играть", pick: "Игра дня", note: "Бесплатно. Без регистрации. Прямо в браузере.", rights: "Все права защищены.", privacy: "Конфиденциальность"}
+};
+const LANGS = ["en", "az", "tr", "ru"];
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+let saved = null;
+try { saved = localStorage.getItem("lumbit-home-lang"); } catch (e) {}
+const nav = (navigator.languages || [navigator.language || ""]).map(l => l.slice(0, 2).toLowerCase());
+let lang = [new URLSearchParams(location.search).get("lang"), saved, ...nav].find(l => LANGS.includes(l)) || "en";
+const day = Math.floor((Date.now() - new Date().getTimezoneOffset() * 6e4) / 864e5);
+const pick = day % GAMES.length;
+
+function render() {
+  document.documentElement.lang = lang;
+  const u = UI[lang];
+  document.querySelectorAll("[data-t]").forEach(el => { el.textContent = u[el.dataset.t]; });
+  document.getElementById("langs").innerHTML = LANGS.map(l => `<button data-lang="${l}" aria-pressed="${l === lang}">${l.toUpperCase()}</button>`).join("");
+  document.getElementById("grid").innerHTML = GAMES.map((g, i) => `
+    <a class="card" href="/${g.slug}/?ref=home" data-i="${i}" style="--c-bg:${g.bg};--c-ink:${g.ink};--c-mute:${g.mute};--c-line:${g.line};--c-acc:${g.acc};--c-on:${g.on}">
+      ${i === pick ? `<span class="pick">${esc(u.pick)}</span>` : ""}
+      <div class="row"><img src="https://lumbit-games.github.io/${g.slug}/icon-192.png" width="76" height="76" alt="">
+        <div><h2>${esc(g.name)}</h2><div class="tags">${g.tags[lang].map(t => `<span>${esc(t)}</span>`).join("")}</div></div></div>
+      <p>${esc(g.tag[lang])}</p>
+      <span class="play">${esc(u.play)} →</span>
+    </a>`).join("");
+}
+document.getElementById("langs").addEventListener("click", e => {
+  const b = e.target.closest("[data-lang]");
+  if (!b) return;
+  lang = b.dataset.lang;
+  try { localStorage.setItem("lumbit-home-lang", lang); } catch (err) {}
+  render();
+});
+// "Surprise me": the highlight hops between the cards, slows down and opens the game it lands on.
+let rolling = false;
+document.getElementById("dice").addEventListener("click", () => {
+  if (rolling) return;
+  rolling = true;
+  const cards = [...document.querySelectorAll(".card")];
+  const target = Math.floor(Math.random() * cards.length);
+  const steps = cards.length * 2 + target;
+  let n = 0;
+  (function hop() {
+    cards.forEach(c => c.classList.remove("hit"));
+    const card = cards[n % cards.length];
+    card.classList.add("hit");
+    if (n === steps) {
+      card.scrollIntoView({block: "center", behavior: "smooth"});
+      setTimeout(() => { location.href = card.getAttribute("href").replace("ref=home", "ref=home-dice"); }, 650);
+      return;
+    }
+    n++;
+    setTimeout(hop, 70 + n * n * 2.2);
+  })();
+});
+window.addEventListener("pageshow", () => { rolling = false; document.querySelectorAll(".card.hit").forEach(c => c.classList.remove("hit")); });
+render();
+
+// Sky: slow twinkling stars and, now and then, a comet.
+const cv = document.getElementById("sky"), cx = cv.getContext("2d");
+const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let W, H, stars = [], comet = null;
+function size() {
+  const d = Math.min(devicePixelRatio || 1, 2);
+  W = cv.width = innerWidth * d; H = cv.height = innerHeight * d;
+  stars = Array.from({length: Math.round(innerWidth * innerHeight / 9000)}, () => ({x: Math.random() * W, y: Math.random() * H, r: (Math.random() * 1.2 + .3) * d, p: Math.random() * 6.28, s: Math.random() * .8 + .2}));
+}
+function draw(t) {
+  cx.clearRect(0, 0, W, H);
+  for (const s of stars) {
+    cx.globalAlpha = calm ? .55 : .3 + .5 * Math.abs(Math.sin(s.p + t / 1400 * s.s));
+    cx.fillStyle = "#cfd8ff";
+    cx.beginPath(); cx.arc(s.x, s.y, s.r, 0, 6.28); cx.fill();
+  }
+  if (!calm) {
+    if (!comet && Math.random() < .004) comet = {x: Math.random() * W * .6, y: -20, vx: W / 170, vy: H / 240, life: 1};
+    if (comet) {
+      const g = cx.createLinearGradient(comet.x, comet.y, comet.x - comet.vx * 16, comet.y - comet.vy * 16);
+      g.addColorStop(0, "rgba(255,210,122," + comet.life + ")"); g.addColorStop(1, "rgba(255,210,122,0)");
+      cx.globalAlpha = 1; cx.strokeStyle = g; cx.lineWidth = 2.5; cx.lineCap = "round";
+      cx.beginPath(); cx.moveTo(comet.x, comet.y); cx.lineTo(comet.x - comet.vx * 16, comet.y - comet.vy * 16); cx.stroke();
+      comet.x += comet.vx; comet.y += comet.vy; comet.life -= .006;
+      if (comet.life <= 0 || comet.x > W + 60 || comet.y > H + 60) comet = null;
+    }
+    requestAnimationFrame(draw);
+  }
+}
+addEventListener("resize", () => { size(); if (calm) draw(0); });
+size(); draw(0);
+})();
+</script>
+<script data-goatcounter="https://lumbit.goatcounter.com/count" async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
